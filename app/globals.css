@@ -1,0 +1,282 @@
+@import "tailwindcss";
+
+/* ============================================
+   CelebConnect Design System
+   Luxury brand aesthetic - Soho House meets NET-A-PORTER
+   ============================================ */
+
+:root {
+  /* Background Colors */
+  --background: #050505;
+  --background-secondary: #0a0a0a;
+  --background-card: #111111;
+  --background-elevated: #1a1a1a;
+
+  /* Gold Accent (Primary) */
+  --gold: #C9A96E;
+  --gold-hover: #D4B87A;
+  --gold-muted: rgba(201, 169, 110, 0.2);
+
+  /* Text Colors */
+  --foreground: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-muted: #71717A;
+
+  /* Border Colors */
+  --border: #262626;
+  --border-hover: #404040;
+
+  /* Status Colors */
+  --success: #22C55E;
+  --warning: #EAB308;
+  --destructive: #EF4444;
+  --info: #3B82F6;
+
+  /* shadcn/ui CSS Variables */
+  --radius: 0.5rem;
+
+  /* Chart Colors */
+  --chart-1: #C9A96E;
+  --chart-2: #D4B87A;
+  --chart-3: #A1A1AA;
+  --chart-4: #71717A;
+  --chart-5: #404040;
+}
+
+/* Dark theme (only mode) */
+.dark,
+:root {
+  --background: #050505;
+  --foreground: #FAFAFA;
+  --card: #111111;
+  --card-foreground: #FAFAFA;
+  --popover: #111111;
+  --popover-foreground: #FAFAFA;
+  --primary: #C9A96E;
+  --primary-foreground: #050505;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #FAFAFA;
+  --muted: #1a1a1a;
+  --muted-foreground: #A1A1AA;
+  --accent: #1a1a1a;
+  --accent-foreground: #FAFAFA;
+  --destructive: #EF4444;
+  --destructive-foreground: #FAFAFA;
+  --border: #262626;
+  --input: #262626;
+  --ring: #C9A96E;
+  --sidebar-background: #0a0a0a;
+  --sidebar-foreground: #FAFAFA;
+  --sidebar-primary: #C9A96E;
+  --sidebar-primary-foreground: #050505;
+  --sidebar-accent: #1a1a1a;
+  --sidebar-accent-foreground: #FAFAFA;
+  --sidebar-border: #262626;
+  --sidebar-ring: #C9A96E;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar-background: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius));
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-playfair);
+
+  /* Custom Colors */
+  --color-gold: #C9A96E;
+  --color-gold-hover: #D4B87A;
+  --color-gold-muted: rgba(201, 169, 110, 0.2);
+  --color-success: #22C55E;
+  --color-warning: #EAB308;
+  --color-info: #3B82F6;
+}
+
+/* Base Styles */
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Utilities */
+@layer utilities {
+  /* Glassmorphism */
+  .glass {
+    background: rgba(17, 17, 17, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Gold Glow Effect */
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(201, 169, 110, 0.15);
+  }
+
+  .glow-gold-lg {
+    box-shadow: 0 0 40px rgba(201, 169, 110, 0.2);
+  }
+
+  /* Text Gradient */
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #C9A96E 0%, #D4B87A 50%, #C9A96E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Border Gradient */
+  .border-gradient-gold {
+    border: 1px solid transparent;
+    background: linear-gradient(var(--background-card), var(--background-card)) padding-box,
+                linear-gradient(135deg, #C9A96E, #D4B87A) border-box;
+  }
+
+  /* Smooth Transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Custom scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--border-hover);
+  }
+}
+
+/* Animation Keyframes */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-gold {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(201, 169, 110, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(201, 169, 110, 0.25);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out both;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+
+/* Focus Styles */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: rgba(201, 169, 110, 0.3);
+  color: var(--foreground);
+}
