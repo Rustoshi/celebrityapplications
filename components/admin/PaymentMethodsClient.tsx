@@ -7,6 +7,7 @@ import {
   Building2,
   Wallet,
   Bitcoin,
+  Gift,
   Plus,
   Pencil,
   Trash2,
@@ -60,6 +61,8 @@ interface PaymentMethodDetails {
   paypalLink?: string;
   acceptedBrands?: string[];
   redemptionInstructions?: string;
+  acceptedGiftCards?: string[];
+  giftCardInstructions?: string;
   [key: string]: unknown;
 }
 
@@ -87,6 +90,8 @@ const getTypeIcon = (type: string) => {
       return Building2;
     case "paypal":
       return Wallet;
+    case "gift_card":
+      return Gift;
     default:
       return CreditCard;
   }
@@ -112,6 +117,10 @@ const getDetailPreview = (method: SerializedPaymentMethod) => {
     case "credit_card":
     case "debit_card":
       return details.acceptedBrands?.join(", ") || "";
+    case "gift_card":
+      return details.acceptedGiftCards?.length
+        ? details.acceptedGiftCards.join(", ")
+        : "All gift cards accepted";
     default:
       return "";
   }
@@ -419,6 +428,48 @@ export default function PaymentMethodsClient({ initialData }: PaymentMethodsClie
                 id="redemptionInstructions"
                 value={(formData.details.redemptionInstructions as string) || ""}
                 onChange={(e) => updateDetail("redemptionInstructions", e.target.value)}
+                rows={3}
+                className="bg-[#0a0a0a] border-[#262626] resize-none"
+              />
+            </div>
+          </>
+        );
+
+      case "gift_card":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="acceptedGiftCards">Accepted Gift Card Types (comma-separated)</Label>
+              <Input
+                id="acceptedGiftCards"
+                value={
+                  Array.isArray(formData.details.acceptedGiftCards)
+                    ? formData.details.acceptedGiftCards.join(", ")
+                    : ""
+                }
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    details: {
+                      ...prev.details,
+                      acceptedGiftCards: e.target.value.split(",").map((s) => s.trim()),
+                    },
+                  }))
+                }
+                placeholder="Amazon, Apple/iTunes, Google Play, Steam, etc."
+                className="bg-[#0a0a0a] border-[#262626]"
+              />
+              <p className="text-xs text-[#71717A]">
+                Leave empty to accept all gift card types
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="giftCardInstructions">Gift Card Instructions</Label>
+              <Textarea
+                id="giftCardInstructions"
+                value={(formData.details.giftCardInstructions as string) || ""}
+                onChange={(e) => updateDetail("giftCardInstructions", e.target.value)}
+                placeholder="Instructions for clients on how to submit gift card payments..."
                 rows={3}
                 className="bg-[#0a0a0a] border-[#262626] resize-none"
               />

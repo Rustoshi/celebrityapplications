@@ -51,7 +51,8 @@ export type PaymentMethodType =
   | "bank_transfer"
   | "paypal"
   | "crypto"
-  | "wire_transfer";
+  | "wire_transfer"
+  | "gift_card";
 
 /** User role identifiers */
 export type UserRole = "admin" | "client";

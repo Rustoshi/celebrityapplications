@@ -162,6 +162,32 @@ export const PAYMENT_METHOD_TYPES: {
   { value: "paypal", label: "PayPal", icon: "wallet" },
   { value: "crypto", label: "Cryptocurrency", icon: "bitcoin" },
   { value: "wire_transfer", label: "Wire Transfer", icon: "send" },
+  { value: "gift_card", label: "Gift Card", icon: "gift" },
+];
+
+/** Common gift card types */
+export const GIFT_CARD_TYPES: string[] = [
+  "Amazon",
+  "Apple/iTunes",
+  "Google Play",
+  "Steam",
+  "PlayStation",
+  "Xbox",
+  "Walmart",
+  "Target",
+  "Best Buy",
+  "Visa Gift Card",
+  "Mastercard Gift Card",
+  "American Express Gift Card",
+  "eBay",
+  "Sephora",
+  "Nike",
+  "Starbucks",
+  "Netflix",
+  "Spotify",
+  "Uber",
+  "DoorDash",
+  "Other",
 ];
 
 /** Fan card order status options with display metadata */

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { clientSignOut } from "@/lib/client-auth";
 import { format } from "date-fns";
 import { Eye, EyeOff, Loader2, AlertTriangle, Shield, Mail, Calendar } from "lucide-react";
 import { toast } from "sonner";
@@ -107,8 +107,7 @@ export default function SettingsClient({ profile }: SettingsClientProps) {
 
       if (result.success) {
         toast.success("Account deleted successfully");
-        await signOut({ redirect: false });
-        router.push("/");
+        clientSignOut("/");
       } else {
         toast.error(result.error || "Failed to delete account");
       }

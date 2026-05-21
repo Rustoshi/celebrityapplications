@@ -24,6 +24,8 @@ export interface PaymentMethodDetails {
   paypalLink?: string;
   acceptedBrands?: string[];
   redemptionInstructions?: string;
+  acceptedGiftCards?: string[];
+  giftCardInstructions?: string;
   [key: string]: unknown;
 }
 
@@ -66,6 +68,8 @@ const PaymentMethodDetailsSchema = new Schema(
     paypalLink: { type: String },
     acceptedBrands: { type: [String] },
     redemptionInstructions: { type: String },
+    acceptedGiftCards: { type: [String] },
+    giftCardInstructions: { type: String },
   },
   { _id: false, strict: false }
 );

@@ -16,6 +16,7 @@ import {
   Building2,
   Wallet,
   Bitcoin,
+  Gift,
   AlertCircle,
   Stars,
   Calendar,
@@ -28,8 +29,18 @@ import { toast } from "sonner";
 
 import { cn, formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { uploadToCloudinary } from "@/lib/upload";
-import { BOOKING_TYPES } from "@/lib/constants";
+import { BOOKING_TYPES, GIFT_CARD_TYPES } from "@/lib/constants";
 import { uploadPaymentReceipt, cancelBooking } from "@/lib/actions/client/bookings";
+
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -88,6 +99,9 @@ interface SerializedFullClientBooking {
   paymentReceipt?: string;
   paymentReceiptPublicId?: string;
   paymentUploadedAt?: string;
+  giftCardType?: string;
+  giftCardAmount?: number;
+  giftCardCode?: string;
   reviewedBy?: string;
   reviewedAt?: string;
   adminNote?: string;
@@ -134,6 +148,7 @@ const paymentTypeIcons: Record<string, React.ElementType> = {
   wire_transfer: Building2,
   paypal: Wallet,
   crypto: Bitcoin,
+  gift_card: Gift,
 };
 
 export default function BookingDetailView({
@@ -147,6 +162,11 @@ export default function BookingDetailView({
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Gift card specific state
+  const [giftCardType, setGiftCardType] = useState<string>("");
+  const [giftCardAmount, setGiftCardAmount] = useState<string>("");
+  const [giftCardCode, setGiftCardCode] = useState<string>("");
 
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -189,31 +209,59 @@ export default function BookingDetailView({
   };
 
   const handleUploadReceipt = async () => {
-    if (!receiptFile || !selectedMethod) {
-      toast.error("Please select a payment method and upload a receipt");
+    const method = paymentMethods.find((m) => m._id === selectedMethod);
+    if (!method) {
+      toast.error("Please select a payment method");
       return;
     }
 
-    const method = paymentMethods.find((m) => m._id === selectedMethod);
-    if (!method) return;
+    // Validate gift card specific fields
+    if (method.type === "gift_card") {
+      if (!giftCardType) {
+        toast.error("Please select a gift card type");
+        return;
+      }
+      if (!giftCardAmount || parseFloat(giftCardAmount) <= 0) {
+        toast.error("Please enter a valid gift card amount");
+        return;
+      }
+      if (!receiptFile && !giftCardCode) {
+        toast.error("Please upload a gift card image or enter the e-code");
+        return;
+      }
+    } else if (!receiptFile) {
+      toast.error("Please upload a payment receipt");
+      return;
+    }
 
     setIsUploading(true);
 
     try {
-      const uploaded = await uploadToCloudinary(receiptFile, "receipts");
+      let uploaded: { url: string; publicId: string } | null = null;
+      
+      if (receiptFile) {
+        uploaded = await uploadToCloudinary(receiptFile, "receipts");
+      }
+
+      const giftCardDetails = method.type === "gift_card" ? {
+        giftCardType,
+        giftCardAmount: parseFloat(giftCardAmount),
+        giftCardCode: giftCardCode || undefined,
+      } : undefined;
 
       const result = await uploadPaymentReceipt(
         booking._id,
-        { url: uploaded.url, publicId: uploaded.publicId },
+        uploaded,
         method.label,
-        method.type
+        method.type,
+        giftCardDetails
       );
 
       if (result.success) {
-        toast.success("Payment receipt uploaded successfully");
+        toast.success("Payment submitted successfully");
         router.refresh();
       } else {
-        toast.error(result.error || "Failed to upload receipt");
+        toast.error(result.error || "Failed to submit payment");
       }
     } catch {
       toast.error("An error occurred");
@@ -321,6 +369,26 @@ export default function BookingDetailView({
             ) : null}
           </div>
         );
+
+      case "gift_card": {
+        const acceptedCards = details.acceptedGiftCards as unknown as string[] | undefined;
+        return (
+          <div className="mt-2 space-y-1 text-sm">
+            {acceptedCards?.length ? (
+              <p className="text-[#A1A1AA]">
+                <span className="text-[#71717A]">Accepted: </span>
+                {acceptedCards.join(", ")}
+              </p>
+            ) : null}
+            {details.giftCardInstructions ? (
+              <p className="text-[#A1A1AA]">
+                <span className="text-[#71717A]">Instructions: </span>
+                {details.giftCardInstructions}
+              </p>
+            ) : null}
+          </div>
+        );
+      }
 
       default:
         return null;
@@ -736,84 +804,210 @@ export default function BookingDetailView({
               })}
             </div>
 
-            {/* Upload Receipt */}
-            {selectedMethod && (
-              <div className="space-y-4 pt-4 border-t border-[#262626]">
-                <p className="text-sm font-medium text-[#FAFAFA]">
-                  Upload Payment Receipt
-                </p>
+            {/* Upload Receipt / Gift Card Details */}
+            {selectedMethod && (() => {
+              const method = paymentMethods.find((m) => m._id === selectedMethod);
+              const isGiftCard = method?.type === "gift_card";
 
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,application/pdf"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-
-                {receiptPreview ? (
-                  <div className="space-y-3">
-                    <div className="relative aspect-video max-w-md rounded-lg overflow-hidden bg-[#0a0a0a]">
-                      <Image
-                        src={receiptPreview}
-                        alt="Receipt preview"
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="border-[#262626]"
-                    >
-                      Change File
-                    </Button>
-                  </div>
-                ) : receiptFile ? (
-                  <div className="flex items-center gap-3 p-3 bg-[#0a0a0a] rounded-lg">
-                    <FileText className="w-5 h-5 text-[#C9A96E]" />
-                    <span className="text-[#FAFAFA]">{receiptFile.name}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="ml-auto border-[#262626]"
-                    >
-                      Change
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-24 border-dashed border-[#262626] hover:border-[#C9A96E]/50"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <Upload className="w-6 h-6 text-[#71717A]" />
-                      <span className="text-[#71717A]">
-                        Click to upload receipt (max 10MB)
-                      </span>
-                    </div>
-                  </Button>
-                )}
-
-                <Button
-                  onClick={handleUploadReceipt}
-                  disabled={!receiptFile || isUploading}
-                  className="w-full bg-[#C9A96E] hover:bg-[#D4B87A] text-black"
-                >
-                  {isUploading ? (
+              return (
+                <div className="space-y-4 pt-4 border-t border-[#262626]">
+                  {isGiftCard ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Uploading...
+                      <p className="text-sm font-medium text-[#FAFAFA]">
+                        Gift Card Details
+                      </p>
+
+                      {/* Gift Card Type */}
+                      <div className="space-y-2">
+                        <Label className="text-[#A1A1AA]">Gift Card Type *</Label>
+                        <Select value={giftCardType} onValueChange={setGiftCardType}>
+                          <SelectTrigger className="bg-[#0a0a0a] border-[#262626]">
+                            <SelectValue placeholder="Select gift card type" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#111111] border-[#262626]">
+                            {GIFT_CARD_TYPES.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Gift Card Amount */}
+                      <div className="space-y-2">
+                        <Label className="text-[#A1A1AA]">Gift Card Amount (USD) *</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          step="0.01"
+                          value={giftCardAmount}
+                          onChange={(e) => setGiftCardAmount(e.target.value)}
+                          placeholder="Enter gift card value"
+                          className="bg-[#0a0a0a] border-[#262626]"
+                        />
+                      </div>
+
+                      {/* Gift Card E-Code */}
+                      <div className="space-y-2">
+                        <Label className="text-[#A1A1AA]">
+                          E-Code / Redemption Code (if digital)
+                        </Label>
+                        <Input
+                          type="text"
+                          value={giftCardCode}
+                          onChange={(e) => setGiftCardCode(e.target.value)}
+                          placeholder="Enter gift card code"
+                          className="bg-[#0a0a0a] border-[#262626] font-mono"
+                        />
+                        <p className="text-xs text-[#71717A]">
+                          Enter the code if it&apos;s a digital gift card, or upload an image below
+                        </p>
+                      </div>
+
+                      {/* Gift Card Image Upload */}
+                      <div className="space-y-2">
+                        <Label className="text-[#A1A1AA]">
+                          Gift Card Image (scratched but unused)
+                        </Label>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
+
+                        {receiptPreview ? (
+                          <div className="space-y-3">
+                            <div className="relative aspect-video max-w-md rounded-lg overflow-hidden bg-[#0a0a0a]">
+                              <Image
+                                src={receiptPreview}
+                                alt="Gift card preview"
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="border-[#262626]"
+                            >
+                              Change Image
+                            </Button>
+                          </div>
+                        ) : receiptFile ? (
+                          <div className="flex items-center gap-3 p-3 bg-[#0a0a0a] rounded-lg">
+                            <FileText className="w-5 h-5 text-[#C9A96E]" />
+                            <span className="text-[#FAFAFA]">{receiptFile.name}</span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="ml-auto border-[#262626]"
+                            >
+                              Change
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full h-20 border-dashed border-[#262626] hover:border-[#C9A96E]/50"
+                          >
+                            <div className="flex flex-col items-center gap-2">
+                              <Gift className="w-5 h-5 text-[#71717A]" />
+                              <span className="text-[#71717A] text-sm">
+                                Upload gift card image (optional if code provided)
+                              </span>
+                            </div>
+                          </Button>
+                        )}
+                      </div>
                     </>
                   ) : (
-                    "Upload Payment Receipt"
+                    <>
+                      <p className="text-sm font-medium text-[#FAFAFA]">
+                        Upload Payment Receipt
+                      </p>
+
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,application/pdf"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                      />
+
+                      {receiptPreview ? (
+                        <div className="space-y-3">
+                          <div className="relative aspect-video max-w-md rounded-lg overflow-hidden bg-[#0a0a0a]">
+                            <Image
+                              src={receiptPreview}
+                              alt="Receipt preview"
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="border-[#262626]"
+                          >
+                            Change File
+                          </Button>
+                        </div>
+                      ) : receiptFile ? (
+                        <div className="flex items-center gap-3 p-3 bg-[#0a0a0a] rounded-lg">
+                          <FileText className="w-5 h-5 text-[#C9A96E]" />
+                          <span className="text-[#FAFAFA]">{receiptFile.name}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="ml-auto border-[#262626]"
+                          >
+                            Change
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full h-24 border-dashed border-[#262626] hover:border-[#C9A96E]/50"
+                        >
+                          <div className="flex flex-col items-center gap-2">
+                            <Upload className="w-6 h-6 text-[#71717A]" />
+                            <span className="text-[#71717A]">
+                              Click to upload receipt (max 10MB)
+                            </span>
+                          </div>
+                        </Button>
+                      )}
+                    </>
                   )}
-                </Button>
-              </div>
-            )}
+
+                  <Button
+                    onClick={handleUploadReceipt}
+                    disabled={isUploading || (isGiftCard ? (!giftCardType || !giftCardAmount || (!receiptFile && !giftCardCode)) : !receiptFile)}
+                    className="w-full bg-[#C9A96E] hover:bg-[#D4B87A] text-black"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : isGiftCard ? (
+                      "Submit Gift Card Payment"
+                    ) : (
+                      "Upload Payment Receipt"
+                    )}
+                  </Button>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

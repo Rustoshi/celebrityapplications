@@ -102,6 +102,9 @@ interface SerializedBookingFull {
   paymentReceipt?: string;
   paymentReceiptPublicId?: string;
   paymentUploadedAt?: string;
+  giftCardType?: string;
+  giftCardAmount?: number;
+  giftCardCode?: string;
   reviewedBy?: string;
   reviewedAt?: string;
   adminNote?: string;
@@ -215,6 +218,9 @@ function serializeBookingFull(doc: Record<string, unknown>): SerializedBookingFu
     paymentUploadedAt: doc.paymentUploadedAt
       ? new Date(doc.paymentUploadedAt as Date).toISOString()
       : undefined,
+    giftCardType: doc.giftCardType as string | undefined,
+    giftCardAmount: doc.giftCardAmount as number | undefined,
+    giftCardCode: doc.giftCardCode as string | undefined,
     reviewedBy: doc.reviewedBy as string | undefined,
     reviewedAt: doc.reviewedAt ? new Date(doc.reviewedAt as Date).toISOString() : undefined,
     adminNote: doc.adminNote as string | undefined,

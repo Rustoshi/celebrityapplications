@@ -21,6 +21,8 @@ import {
   Mail,
   Phone,
   Globe,
+  Gift,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -97,6 +99,9 @@ interface SerializedBookingFull {
   paymentReceipt?: string;
   paymentReceiptPublicId?: string;
   paymentUploadedAt?: string;
+  giftCardType?: string;
+  giftCardAmount?: number;
+  giftCardCode?: string;
   reviewedBy?: string;
   reviewedAt?: string;
   adminNote?: string;
@@ -553,7 +558,7 @@ export default function BookingDetailClient({ booking }: BookingDetailClientProp
           </div>
 
           {/* Payment Info Card */}
-          {(booking.paymentMethodUsed || booking.paymentReceipt) && (
+          {(booking.paymentMethodUsed || booking.paymentReceipt || booking.giftCardType) && (
             <div className="bg-[#111111] border border-[#262626] rounded-lg p-6">
               <h2 className="text-sm font-medium text-[#71717A] mb-4">Payment Information</h2>
               <div className="space-y-3">
@@ -566,7 +571,7 @@ export default function BookingDetailClient({ booking }: BookingDetailClientProp
                 {booking.paymentMethodType && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[#71717A]">Method Type</span>
-                    <span className="text-sm text-[#FAFAFA]">{booking.paymentMethodType}</span>
+                    <span className="text-sm text-[#FAFAFA] capitalize">{booking.paymentMethodType.replace("_", " ")}</span>
                   </div>
                 )}
                 {booking.paymentUploadedAt && (
@@ -577,18 +582,91 @@ export default function BookingDetailClient({ booking }: BookingDetailClientProp
                     </span>
                   </div>
                 )}
+
+                {/* Gift Card Details */}
+                {booking.paymentMethodType === "gift_card" && (
+                  <div className="pt-3 border-t border-[#262626] space-y-3">
+                    <div className="flex items-center gap-2 text-[#C9A96E]">
+                      <Gift className="w-4 h-4" />
+                      <span className="text-sm font-medium">Gift Card Details</span>
+                    </div>
+                    
+                    {booking.giftCardType && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-[#71717A]">Card Type</span>
+                        <span className="text-sm text-[#FAFAFA]">{booking.giftCardType}</span>
+                      </div>
+                    )}
+                    
+                    {booking.giftCardAmount && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-[#71717A]">Card Value</span>
+                        <span className="text-sm text-[#C9A96E] font-medium">
+                          {formatCurrency(booking.giftCardAmount)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {booking.giftCardCode && (
+                      <div className="space-y-1">
+                        <span className="text-sm text-[#71717A]">E-Code / Redemption Code</span>
+                        <div className="flex items-center gap-2 p-2 bg-[#0a0a0a] rounded border border-[#262626]">
+                          <code className="flex-1 text-sm text-[#FAFAFA] font-mono break-all">
+                            {booking.giftCardCode}
+                          </code>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(booking.giftCardCode || "");
+                              toast.success("Code copied to clipboard");
+                            }}
+                            className="shrink-0 h-8 w-8 p-0"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {booking.paymentReceipt && (
                   <div className="pt-3 border-t border-[#262626]">
-                    <p className="text-sm text-[#71717A] mb-2">Payment Receipt</p>
-                    <a
-                      href={booking.paymentReceipt}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-[#C9A96E] hover:underline"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      View Receipt
-                    </a>
+                    <p className="text-sm text-[#71717A] mb-2">
+                      {booking.paymentMethodType === "gift_card" ? "Gift Card Image" : "Payment Receipt"}
+                    </p>
+                    {booking.paymentReceipt.match(/\.(jpg|jpeg|png|webp|gif)$/i) ? (
+                      <div className="space-y-2">
+                        <div className="relative aspect-video max-w-sm rounded-lg overflow-hidden bg-[#0a0a0a]">
+                          <Image
+                            src={booking.paymentReceipt}
+                            alt={booking.paymentMethodType === "gift_card" ? "Gift card" : "Payment receipt"}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <a
+                          href={booking.paymentReceipt}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-sm text-[#C9A96E] hover:underline"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          View Full Size
+                        </a>
+                      </div>
+                    ) : (
+                      <a
+                        href={booking.paymentReceipt}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-[#C9A96E] hover:underline"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        View Receipt
+                      </a>
+                    )}
                   </div>
                 )}
               </div>

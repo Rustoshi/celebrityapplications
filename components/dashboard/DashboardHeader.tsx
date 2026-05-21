@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Menu, LogOut, User, Settings } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { clientSignOut } from "@/lib/client-auth";
 
 import { getInitials } from "@/lib/utils";
 
@@ -56,8 +56,8 @@ export default function DashboardHeader({ onMobileMenuOpen, user }: DashboardHea
   const pathname = usePathname();
   const pageTitle = getPageTitle(pathname);
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/login" });
+  const handleSignOut = () => {
+    clientSignOut("/login");
   };
 
   return (

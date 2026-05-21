@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { Menu, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -16,8 +15,13 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
-export default function Navbar() {
-  const { data: session, status } = useSession();
+interface NavbarProps {
+  userRole?: string | null;
+}
+
+export default function Navbar({ userRole }: NavbarProps) {
+  const isLoggedIn = !!userRole;
+  const isAdmin = userRole === "admin" || userRole === "super_admin";
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -38,7 +42,6 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
-  const isAdmin = session?.user?.role === "admin" || session?.user?.role === "super_admin";
 
   return (
     <>
@@ -74,9 +77,7 @@ export default function Navbar() {
 
             {/* Desktop Auth */}
             <div className="hidden lg:flex items-center gap-3">
-              {status === "loading" ? (
-                <div className="w-24 h-10 bg-[#262626] rounded-lg animate-pulse" />
-              ) : session ? (
+              {isLoggedIn ? (
                 isAdmin ? (
                   <Button asChild className="bg-[#C9A96E] hover:bg-[#D4B87A] text-black">
                     <Link href="/admin/dashboard">Admin Panel</Link>
@@ -153,9 +154,7 @@ export default function Navbar() {
               </nav>
 
               <div className="p-4 border-t border-[#262626] space-y-3">
-                {status === "loading" ? (
-                  <div className="w-full h-10 bg-[#262626] rounded-lg animate-pulse" />
-                ) : session ? (
+                {isLoggedIn ? (
                   isAdmin ? (
                     <Button
                       asChild

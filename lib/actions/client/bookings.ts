@@ -52,6 +52,9 @@ interface SerializedBooking {
   paymentReceipt?: string;
   paymentReceiptPublicId?: string;
   paymentUploadedAt?: string;
+  giftCardType?: string;
+  giftCardAmount?: number;
+  giftCardCode?: string;
   reviewedBy?: string;
   reviewedAt?: string;
   adminNote?: string;
@@ -113,6 +116,9 @@ function serializeBooking(doc: Record<string, unknown>): SerializedBooking {
     paymentUploadedAt: doc.paymentUploadedAt
       ? new Date(doc.paymentUploadedAt as Date).toISOString()
       : undefined,
+    giftCardType: doc.giftCardType as string | undefined,
+    giftCardAmount: doc.giftCardAmount as number | undefined,
+    giftCardCode: doc.giftCardCode as string | undefined,
     reviewedBy: doc.reviewedBy ? String(doc.reviewedBy) : undefined,
     reviewedAt: doc.reviewedAt
       ? new Date(doc.reviewedAt as Date).toISOString()
@@ -378,9 +384,14 @@ export async function getMyBookingById(id: string) {
  */
 export async function uploadPaymentReceipt(
   bookingId: string,
-  receipt: { url: string; publicId: string },
+  receipt: { url: string; publicId: string } | null,
   paymentMethodUsed: string,
-  paymentMethodType: string
+  paymentMethodType: string,
+  giftCardDetails?: {
+    giftCardType: string;
+    giftCardAmount: number;
+    giftCardCode?: string;
+  }
 ) {
   try {
     await connectDB();
@@ -405,15 +416,50 @@ export async function uploadPaymentReceipt(
       };
     }
 
+    // For gift cards, either receipt image or e-code is required
+    if (paymentMethodType === "gift_card") {
+      if (!receipt && !giftCardDetails?.giftCardCode) {
+        return {
+          success: false,
+          error: "Please upload a gift card image or enter the e-code",
+        };
+      }
+      if (!giftCardDetails?.giftCardType || !giftCardDetails?.giftCardAmount) {
+        return {
+          success: false,
+          error: "Gift card type and amount are required",
+        };
+      }
+    } else if (!receipt) {
+      return {
+        success: false,
+        error: "Payment receipt is required",
+      };
+    }
+
+    // Delete old receipt if exists
     if (booking.paymentReceiptPublicId) {
       await deleteImage(booking.paymentReceiptPublicId).catch(console.error);
     }
 
-    booking.paymentReceipt = receipt.url;
-    booking.paymentReceiptPublicId = receipt.publicId;
+    // Update receipt if provided
+    if (receipt) {
+      booking.paymentReceipt = receipt.url;
+      booking.paymentReceiptPublicId = receipt.publicId;
+    }
+
     booking.paymentMethodUsed = paymentMethodUsed;
     booking.paymentMethodType = paymentMethodType as PaymentMethodType;
     booking.paymentUploadedAt = new Date();
+
+    // Handle gift card specific fields
+    if (giftCardDetails) {
+      booking.giftCardType = giftCardDetails.giftCardType;
+      booking.giftCardAmount = giftCardDetails.giftCardAmount;
+      if (giftCardDetails.giftCardCode) {
+        booking.giftCardCode = giftCardDetails.giftCardCode;
+      }
+    }
 
     if (booking.status === "approved") {
       booking.status = "payment_pending";

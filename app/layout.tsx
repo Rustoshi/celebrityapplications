@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import AuthSessionProvider from "@/components/providers/SessionProvider";
+/* SessionProvider removed — server-side auth only */
 import { siteConfig } from "@/lib/site-config";
 import "./globals.css";
 
@@ -50,11 +50,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} bg-[#050505] text-[#FAFAFA] font-sans antialiased min-h-screen`}
       >
-        <AuthSessionProvider>
-          <TooltipProvider>
-            {children}
-          </TooltipProvider>
-        </AuthSessionProvider>
+        <TooltipProvider>
+          {children}
+        </TooltipProvider>
         <Toaster
           position="top-right"
           toastOptions={{

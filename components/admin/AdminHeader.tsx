@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { clientSignOut } from "@/lib/client-auth";
 import { Menu, Bell, LogOut, Settings, User } from "lucide-react";
 
 import { cn, getInitials } from "@/lib/utils";
@@ -51,8 +51,8 @@ export default function AdminHeader({
     return "Admin";
   };
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/admin/login" });
+  const handleSignOut = () => {
+    clientSignOut("/admin/login");
   };
 
   return (

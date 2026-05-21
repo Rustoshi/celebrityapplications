@@ -44,6 +44,9 @@ export interface IBookingRequest extends Document {
   paymentReceipt?: string;
   paymentReceiptPublicId?: string;
   paymentUploadedAt?: Date;
+  giftCardType?: string;
+  giftCardAmount?: number;
+  giftCardCode?: string;
   reviewedBy?: string;
   reviewedAt?: Date;
   adminNote?: string;
@@ -140,6 +143,7 @@ const BookingRequestSchema = new Schema<IBookingRequest>(
         "paypal",
         "crypto",
         "wire_transfer",
+        "gift_card",
       ],
     },
     paymentReceipt: {
@@ -150,6 +154,15 @@ const BookingRequestSchema = new Schema<IBookingRequest>(
     },
     paymentUploadedAt: {
       type: Date,
+    },
+    giftCardType: {
+      type: String,
+    },
+    giftCardAmount: {
+      type: Number,
+    },
+    giftCardCode: {
+      type: String,
     },
     reviewedBy: {
       type: String,
