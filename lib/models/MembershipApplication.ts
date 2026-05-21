@@ -45,8 +45,10 @@ const MembershipApplicationSchema = new Schema<IMembershipApplication>(
     },
     membershipCardNumber: {
       type: String,
-      required: [true, "Membership card number is required"],
       unique: true,
+      default: function() {
+        return generateMembershipNumber();
+      },
     },
     status: {
       type: String,
@@ -133,13 +135,6 @@ MembershipApplicationSchema.virtual("isExpired").get(function () {
   if (this.status !== "active") return false;
   if (!this.expiresAt) return false;
   return new Date() > this.expiresAt;
-});
-
-/** Pre-save hook to auto-generate membershipCardNumber if not set */
-MembershipApplicationSchema.pre("save", async function () {
-  if (!this.membershipCardNumber) {
-    this.membershipCardNumber = generateMembershipNumber();
-  }
 });
 
 /** Ensure virtuals are included in JSON output */
