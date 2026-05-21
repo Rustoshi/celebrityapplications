@@ -124,15 +124,16 @@ export function generateFanCardOrderNumber(): string {
 }
 
 /**
- * Generates a unique membership card number in format: MC-YYYYMMDD-XXXX
+ * Generates a unique membership card number in format: MC-YYYYMMDD-XXXXXX
  */
 export function generateMembershipNumber(): string {
   const date = new Date();
   const dateStr = format(date, "yyyyMMdd");
+  const timestamp = Date.now().toString(36).slice(-4).toUpperCase();
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let randomPart = "";
   for (let i = 0; i < 4; i++) {
     randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return `MC-${dateStr}-${randomPart}`;
+  return `MC-${dateStr}-${timestamp}${randomPart}`;
 }

@@ -114,6 +114,7 @@ const FanCardOrderSchema = new Schema<IFanCardOrder>(
         "paypal",
         "crypto",
         "wire_transfer",
+        "gift_card",
       ],
     },
     paymentReceipt: {

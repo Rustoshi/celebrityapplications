@@ -75,6 +75,7 @@ const MembershipApplicationSchema = new Schema<IMembershipApplication>(
         "paypal",
         "crypto",
         "wire_transfer",
+        "gift_card",
       ],
     },
     paymentReceipt: {

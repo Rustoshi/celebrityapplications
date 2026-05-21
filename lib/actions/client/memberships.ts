@@ -203,7 +203,28 @@ export async function applyForMembership(data: Record<string, unknown>) {
     };
   } catch (error) {
     console.error("Error applying for membership:", error);
-    return { success: false, error: "Failed to submit application" };
+    
+    // Handle specific MongoDB errors
+    if (error instanceof Error) {
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      
+      // Duplicate key error (e.g., membership card number collision)
+      if (error.message.includes("E11000") || error.message.includes("duplicate key")) {
+        return { success: false, error: "Please try again - a temporary conflict occurred" };
+      }
+      // Validation errors from Mongoose
+      if (error.message.includes("validation failed")) {
+        const validationMsg = error.message.split(":").slice(-1)[0]?.trim() || "Invalid application data";
+        return { success: false, error: validationMsg };
+      }
+      // Cast errors (invalid ObjectId)
+      if (error.name === "CastError") {
+        return { success: false, error: "Invalid membership tier selected" };
+      }
+    }
+    
+    return { success: false, error: "Failed to submit application. Please try again." };
   }
 }
 
