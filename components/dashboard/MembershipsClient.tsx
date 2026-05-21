@@ -119,6 +119,9 @@ interface MembershipsClientProps {
 /* ─── Component ─── */
 
 export default function MembershipsClient({ initialTiers, initialApplications }: MembershipsClientProps) {
+  // Tab control
+  const [activeTab, setActiveTab] = useState("tiers");
+
   // Tiers
   const [tiers] = useState<SerializedTier[]>(initialTiers);
 
@@ -172,7 +175,9 @@ export default function MembershipsClient({ initialTiers, initialApplications }:
         toast.success(`Application submitted! Card #${result.data?.membershipCardNumber}`);
         setApplyingTier(null);
         setAutoRenew(false);
-        fetchApplications(1, appFilter);
+        fetchApplications(1, "all");
+        setAppFilter("all");
+        setActiveTab("applications");
       } else {
         toast.error(result.error || "Application failed");
       }
@@ -260,7 +265,7 @@ export default function MembershipsClient({ initialTiers, initialApplications }:
         <p className="text-sm text-[#71717A]">Unlock premium perks with exclusive membership tiers</p>
       </div>
 
-      <Tabs defaultValue="tiers" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="bg-[#111111] border border-[#262626]">
           <TabsTrigger value="tiers" className="data-[state=active]:bg-[#C9A96E]/20 data-[state=active]:text-[#C9A96E]">
             <Crown className="w-4 h-4 mr-2" />
